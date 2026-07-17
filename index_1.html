@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="only light">
+<title>Jack.Central | 製造現場の業務改善・アプリ / Excelマクロ開発</title>
+<meta name="description" content="製造ラインの管理を20年務めた元ライン長が作る、工場のための業務自動化。Excelマクロ・シフト管理アプリ・多言語安全教育資料(ポルトガル語・ミャンマー語ほか)。中小製造業向け、オンライン完結。">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Zen+Kaku+Gothic+New:wght@700;900&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#1B2A41;        /* 作業服ネイビー */
+  --navy-deep:#122033;
+  --yellow:#F2B705;      /* 安全黄 */
+  --paper:#FAFAF7;       /* 帳票の紙色 */
+  --ink:#22262E;
+  --steel:#6B7688;
+  --rule:#D8DCE3;
+  --shuniku:#C0392B;     /* 朱肉 */
+  --ok:#2E7D4F;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth;background:var(--paper);color-scheme:only light}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+body{
+  font-family:'Noto Sans JP',sans-serif;
+  color:var(--ink);
+  background:var(--paper);
+  line-height:1.8;
+  font-size:16px;
+}
+.mono{font-family:'IBM Plex Mono',monospace}
+.disp{font-family:'Zen Kaku Gothic New',sans-serif}
+a{color:inherit}
+img{max-width:100%;display:block}
+
+/* ===== 帳票の外枠 ===== */
+.sheet{max-width:920px;margin:0 auto;padding:0 20px}
+
+/* ===== ヘッダー ===== */
+header{
+  background:var(--navy);
+  color:#fff;
+  position:sticky;top:0;z-index:50;
+  border-bottom:4px solid var(--yellow);
+}
+.nav{display:flex;align-items:center;justify-content:space-between;height:56px;max-width:920px;margin:0 auto;padding:0 20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none}
+.brand-mark{
+  width:30px;height:30px;border:2px solid var(--yellow);border-radius:50%;
+  display:grid;place-items:center;
+  font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14px;color:var(--yellow);
+}
+.brand-name{font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;letter-spacing:.04em;font-size:17px}
+nav ul{display:flex;gap:4px;list-style:none}
+nav a{
+  text-decoration:none;font-size:13px;font-weight:500;color:#C9D2E0;
+  padding:8px 12px;border-radius:4px;
+}
+nav a:hover,nav a:focus-visible{color:#fff;background:rgba(255,255,255,.08)}
+nav a:focus-visible{outline:2px solid var(--yellow);outline-offset:2px}
+@media(max-width:640px){nav ul{gap:0}nav a{padding:8px 8px;font-size:12px}}
+
+/* ===== ヒーロー:改善提案書の表紙 ===== */
+.hero{background:var(--navy);color:#fff;padding:56px 0 0}
+.proposal{
+  background:var(--paper);color:var(--ink);
+  border:1px solid var(--rule);
+  border-radius:6px 6px 0 0;
+  box-shadow:0 -8px 40px rgba(0,0,0,.25);
+  overflow:hidden;
+}
+.proposal-head{
+  display:flex;align-items:stretch;border-bottom:2px solid var(--navy);
+}
+.proposal-title{flex:1;padding:22px 24px 18px}
+.eyebrow{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.18em;
+  color:var(--navy);border:1px solid var(--navy);padding:2px 10px;margin-bottom:12px;
+}
+h1{
+  font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;
+  font-size:clamp(24px,5vw,38px);line-height:1.35;letter-spacing:.01em;
+}
+h1 .marker{
+  background:linear-gradient(transparent 62%,var(--yellow) 62%);
+}
+.hero-lede{margin-top:14px;font-size:15px;color:var(--steel);max-width:34em}
+.stamp-box{
+  flex:0 0 auto;display:flex;flex-direction:column;justify-content:center;align-items:center;
+  gap:6px;padding:18px 22px;border-left:1px solid var(--rule);
+}
+.stamp{
+  width:74px;height:74px;border:2.5px solid var(--shuniku);border-radius:50%;
+  color:var(--shuniku);display:grid;place-items:center;text-align:center;
+  font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;font-size:13px;line-height:1.3;
+  transform:rotate(-6deg);
+  opacity:.92;
+}
+.stamp small{font-size:9px;font-weight:700;letter-spacing:.08em}
+.stamp-label{font-size:10px;color:var(--steel);letter-spacing:.1em}
+@media(max-width:560px){.stamp-box{display:none}}
+
+/* 表紙のビフォーアフター行 */
+.hero-facts{
+  display:grid;grid-template-columns:repeat(3,1fr);
+  border-top:1px solid var(--rule);
+}
+.fact{padding:16px 18px;border-right:1px solid var(--rule)}
+.fact:last-child{border-right:none}
+.fact-label{font-size:11px;font-weight:700;color:var(--steel);letter-spacing:.1em;margin-bottom:4px}
+.fact-value{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:clamp(15px,2.6vw,20px);color:var(--navy)}
+.fact-value .arrow{color:var(--shuniku);padding:0 2px}
+@media(max-width:640px){
+  .hero-facts{grid-template-columns:1fr}
+  .fact{border-right:none;border-bottom:1px solid var(--rule)}
+  .fact:last-child{border-bottom:none}
+}
+
+/* ===== セクション共通:帳票の見出し ===== */
+section{padding:64px 0;background:var(--paper)}
+.sec-head{display:flex;align-items:baseline;gap:14px;margin-bottom:8px}
+.sec-no{
+  font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:13px;
+  color:var(--paper);background:var(--navy);padding:3px 10px;
+}
+h2{
+  font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;
+  font-size:clamp(20px,3.6vw,26px);letter-spacing:.02em;
+}
+.sec-sub{color:var(--steel);font-size:14px;margin-bottom:32px;padding-left:2px}
+.rule{border:none;border-top:2px solid var(--navy);margin:10px 0 14px}
+
+/* ===== 1. 現状の課題 ===== */
+.pain-list{display:grid;gap:0;border:1px solid var(--rule);background:#fff}
+.pain{
+  display:grid;grid-template-columns:44px 1fr;gap:0;
+  border-bottom:1px solid var(--rule);
+}
+.pain:last-child{border-bottom:none}
+.pain-check{
+  display:grid;place-items:center;border-right:1px solid var(--rule);
+  font-family:'IBM Plex Mono',monospace;color:var(--shuniku);font-weight:600;font-size:16px;
+  background:#FDF9F0;
+}
+.pain-body{padding:14px 18px;font-size:15px}
+.pain-body strong{color:var(--navy)}
+.pain-note{margin-top:20px;font-size:14px;color:var(--steel)}
+.pain-note strong{color:var(--ink)}
+
+/* ===== 2. 改善事例 ===== */
+section.works{background:#fff;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.work{
+  border:1px solid var(--rule);background:var(--paper);
+  margin-bottom:26px;
+}
+.work-head{
+  display:flex;flex-wrap:wrap;align-items:center;gap:10px;
+  padding:12px 18px;border-bottom:1px solid var(--rule);background:#fff;
+}
+.work-tag{
+  font-size:11px;font-weight:700;letter-spacing:.08em;
+  color:var(--navy);border:1px solid var(--navy);padding:1px 8px;
+}
+.work-title{font-family:'Zen Kaku Gothic New',sans-serif;font-weight:700;font-size:16px}
+.work-body{display:grid;grid-template-columns:1fr 1fr;gap:0}
+@media(max-width:640px){.work-body{grid-template-columns:1fr}}
+.work-desc{padding:16px 18px;font-size:14px}
+.work-desc p+p{margin-top:8px}
+.work-metrics{
+  border-left:1px solid var(--rule);padding:16px 18px;
+  display:flex;flex-direction:column;justify-content:center;gap:12px;background:#FFFDF5;
+}
+@media(max-width:640px){.work-metrics{border-left:none;border-top:1px solid var(--rule)}}
+.metric-label{font-size:11px;font-weight:700;color:var(--steel);letter-spacing:.1em}
+.metric{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:18px;color:var(--navy)}
+.metric .arrow{color:var(--shuniku)}
+.metric-sub{font-size:12px;color:var(--steel)}
+.shot{
+  border:1px solid var(--rule);background:repeating-linear-gradient(45deg,#F1F2F4,#F1F2F4 8px,#E9EBEE 8px,#E9EBEE 16px);
+  aspect-ratio:16/9;display:grid;place-items:center;color:var(--steel);
+  font-size:12px;letter-spacing:.06em;margin:0 18px 16px;
+}
+.shot-img{
+  display:block;width:calc(100% - 36px);margin:0 18px 16px;
+  border:1px solid var(--rule);
+}
+
+/* ===== 3. 進め方・費用 ===== */
+.flow{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--rule);background:#fff;margin-bottom:36px}
+@media(max-width:640px){.flow{grid-template-columns:1fr 1fr}}
+.step{padding:16px;border-right:1px solid var(--rule)}
+.step:last-child{border-right:none}
+@media(max-width:640px){.step:nth-child(2){border-right:none}.step:nth-child(-n+2){border-bottom:1px solid var(--rule)}}
+.step-no{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:12px;color:var(--shuniku);margin-bottom:6px}
+.step-title{font-weight:700;font-size:14px;margin-bottom:4px}
+.step-desc{font-size:12.5px;color:var(--steel);line-height:1.6}
+
+table{width:100%;border-collapse:collapse;background:#fff;font-size:14px}
+caption{text-align:left;font-weight:700;font-size:14px;margin-bottom:8px}
+th,td{border:1px solid var(--rule);padding:12px 14px;text-align:left;vertical-align:top}
+thead th{background:var(--navy);color:#fff;font-weight:700;font-size:13px;letter-spacing:.04em}
+td.price{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--navy);white-space:nowrap}
+.table-note{font-size:12.5px;color:var(--steel);margin-top:10px}
+
+/* ===== 4. 連絡先 ===== */
+section.contact{background:var(--navy);color:#fff}
+.contact .sec-no{background:var(--yellow);color:var(--navy-deep)}
+.contact h2{color:#fff}
+.contact .sec-sub{color:#AFBACB}
+.contact .rule{border-top-color:var(--yellow)}
+.contact-grid{display:grid;grid-template-columns:1.2fr 1fr;gap:32px}
+@media(max-width:640px){.contact-grid{grid-template-columns:1fr}}
+.contact-copy{font-size:15px;color:#DDE3EC}
+.contact-copy p+p{margin-top:12px}
+.contact-copy strong{color:var(--yellow)}
+.contact-card{
+  background:#fff;color:var(--ink);border-radius:6px;padding:24px;
+  display:flex;flex-direction:column;gap:14px;height:fit-content;
+}
+.contact-row{display:flex;flex-direction:column;gap:2px}
+.contact-label{font-size:11px;font-weight:700;color:var(--steel);letter-spacing:.12em}
+.contact-value{font-size:15px;font-weight:500}
+.btn{
+  display:block;text-align:center;text-decoration:none;
+  background:var(--yellow);color:var(--navy-deep);
+  font-family:'Zen Kaku Gothic New',sans-serif;font-weight:900;font-size:16px;
+  padding:14px;border-radius:4px;letter-spacing:.04em;
+  transition:transform .12s ease, box-shadow .12s ease;
+}
+.btn:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(242,183,5,.4)}
+.btn:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.contact-fine{font-size:12px;color:#8FA0B8}
+
+footer{background:var(--navy-deep);color:#8FA0B8;font-size:12px;padding:20px 0;border-top:1px solid rgba(255,255,255,.08)}
+.foot{max-width:920px;margin:0 auto;padding:0 20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="nav">
+    <a class="brand" href="#top">
+      <span class="brand-mark">JC</span>
+      <span class="brand-name">Jack.Central</span>
+    </a>
+    <nav aria-label="ページ内">
+      <ul>
+        <li><a href="#pain">課題</a></li>
+        <li><a href="#works">事例</a></li>
+        <li><a href="#price">費用</a></li>
+        <li><a href="#contact">相談する</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<!-- ===== 表紙 ===== -->
+<div class="hero" id="top">
+  <div class="sheet">
+    <div class="proposal">
+      <div class="proposal-head">
+        <div class="proposal-title">
+          <span class="eyebrow">業務改善提案書</span>
+          <h1>その手作業、<br><span class="marker">現場を知ってる人間</span>が自動化します。</h1>
+          <p class="hero-lede">Jack.Centralは、製造ラインの管理を20年務めた元ライン長が運営する業務改善サービスです。Excelマクロ、シフト管理アプリ、多言語の安全教育資料まで。打ち合わせから納品・保守までオンラインで完結します。</p>
+        </div>
+        <div class="stamp-box" aria-hidden="true">
+          <div class="stamp">Jack<br>Central<br><small>改善担当</small></div>
+          <span class="stamp-label">現場歴20年</span>
+        </div>
+      </div>
+      <div class="hero-facts">
+        <div class="fact">
+          <div class="fact-label">シフト表の作成</div>
+          <div class="fact-value">3時間 <span class="arrow">→</span> 10分</div>
+        </div>
+        <div class="fact">
+          <div class="fact-label">納入予定表の転記</div>
+          <div class="fact-value">毎日45分 <span class="arrow">→</span> 5分</div>
+        </div>
+        <div class="fact">
+          <div class="fact-label">導入までの来社回数</div>
+          <div class="fact-value">0回<span style="font-size:12px;color:var(--steel)">(全工程オンライン)</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== 1. 現状の課題 ===== -->
+<section id="pain">
+  <div class="sheet">
+    <div class="sec-head"><span class="sec-no mono">1</span><h2>こんな作業、まだ手でやっていませんか</h2></div>
+    <hr class="rule">
+    <p class="sec-sub">ひとつでも当てはまれば、自動化の対象です。</p>
+    <div class="pain-list">
+      <div class="pain"><div class="pain-check">✓</div><div class="pain-body">毎月の<strong>シフト表・配置表</strong>を、Excelのセルを1つずつ埋めて作っている</div></div>
+      <div class="pain"><div class="pain-check">✓</div><div class="pain-body">仕入先ごとの<strong>納入予定</strong>を、FAXやメールから手で転記している</div></div>
+      <div class="pain"><div class="pain-check">✓</div><div class="pain-body">日報・検査記録の<strong>集計</strong>に、毎日誰かの残業時間が消えている</div></div>
+      <div class="pain"><div class="pain-check">✓</div><div class="pain-body">外国人従業員向けの<strong>安全教育・作業手順</strong>が、日本語資料のままになっている</div></div>
+      <div class="pain"><div class="pain-check">✓</div><div class="pain-body">「システム会社に頼むほどじゃない」規模の困りごとが、社内に積み上がっている</div></div>
+    </div>
+    <p class="pain-note"><strong>大手のシステム会社は、この規模の仕事を受けません。</strong>受けても現場を知らないSEが要件定義から始めるので、高くて遅い。Jack.Centralは自分の現場で使うものを20年作り続けてきたので、話が早いです。</p>
+  </div>
+</section>
+
+<!-- ===== 2. 改善事例 ===== -->
+<section id="works" class="works">
+  <div class="sheet">
+    <div class="sec-head"><span class="sec-no mono">2</span><h2>改善事例(実際の現場で運用実績)</h2></div>
+    <hr class="rule">
+    <p class="sec-sub">すべて実際の製造現場で運用されてきたものです。画面はデモ用データに差し替えています。</p>
+
+    <div class="work">
+      <div class="work-head"><span class="work-tag">Excel VBA</span><span class="work-title">仕入先3社対応・納入予定表マクロ</span></div>
+      <div class="work-body">
+        <div class="work-desc">
+          <p>仕入先ごとにバラバラな納入予定を1つの予定表に自動集約。シフトに応じた数式の自動適用、土曜稼働パネルの切替、色分け表示まで自動化。</p>
+          <p>担当者は「貼り付けてボタンを押す」だけになりました。</p>
+        </div>
+        <div class="work-metrics">
+          <div>
+            <div class="metric-label">転記・確認作業</div>
+            <div class="metric">毎日45分 <span class="arrow">→</span> 5分</div>
+            <div class="metric-sub">転記ミスによる手配ズレを低減</div>
+          </div>
+        </div>
+      </div>
+      <img class="shot-img" src="images/demo_excel.png" alt="納入予定表マクロの画面(デモデータ)" loading="lazy">
+    </div>
+
+    <div class="work">
+      <div class="work-head"><span class="work-tag">Webアプリ</span><span class="work-title">ライン管理アプリ(シフト・スキルマップ・休暇管理)</span></div>
+      <div class="work-body">
+        <div class="work-desc">
+          <p>人員配置、スキルマップ、欠勤記録、有給カレンダーをブラウザで一元管理。スマホからも確認でき、二段階のパスワードで閲覧権限を分離。</p>
+          <p>サーバー費用は月0円構成。保守もオンラインで完結します。</p>
+        </div>
+        <div class="work-metrics">
+          <div>
+            <div class="metric-label">シフト表の作成</div>
+            <div class="metric">3時間 <span class="arrow">→</span> 10分</div>
+            <div class="metric-sub">配置の抜け・スキル不適合を自動チェック</div>
+          </div>
+        </div>
+      </div>
+      <img class="shot-img" src="images/demo_app.png" alt="ライン管理アプリの画面(デモデータ)。本日の配置とスキル表示、応援可能者のアラート、有給カレンダー" loading="lazy">
+    </div>
+
+    <div class="work">
+      <div class="work-head"><span class="work-tag">多言語対応</span><span class="work-title">外国人従業員向け 安全教育資料</span></div>
+      <div class="work-body">
+        <div class="work-desc">
+          <p>現場の安全ポスター・教育資料を、実際の作業内容に即した表現で多言語化(ポルトガル語・ミャンマー語の制作実績あり)。翻訳会社と違い、現場の危険ポイントを理解した上で訳語を選びます。</p>
+          <p>技能実習生・特定技能の受け入れ現場での運用実績があります。</p>
+        </div>
+        <div class="work-metrics">
+          <div>
+            <div class="metric-label">制作実績</div>
+            <div class="metric" style="font-size:15px;line-height:1.7">日本語 / ポルトガル語 / ミャンマー語</div>
+            <div class="metric-sub">その他の言語(ベトナム語・英語など)もご相談ください</div>
+          </div>
+        </div>
+      </div>
+      <img class="shot-img" src="images/demo_multilingual.png" alt="多言語安全教育資料のサンプル。日本語・ポルトガル語・ミャンマー語の3言語で巻き込まれ注意と指差し確認を説明" loading="lazy">
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== 3. 進め方・費用 ===== -->
+<section id="price">
+  <div class="sheet">
+    <div class="sec-head"><span class="sec-no mono">3</span><h2>進め方と費用の目安</h2></div>
+    <hr class="rule">
+    <p class="sec-sub">最初の相談と診断は無料です。合わないと判断されたら、そこで終わって構いません。</p>
+
+    <div class="flow">
+      <div class="step">
+        <div class="step-no">STEP 1</div>
+        <div class="step-title">無料相談</div>
+        <div class="step-desc">メールまたはオンラインで現状をヒアリング。30分程度。</div>
+      </div>
+      <div class="step">
+        <div class="step-no">STEP 2</div>
+        <div class="step-title">無料診断</div>
+        <div class="step-desc">対象業務を拝見し、削減時間と費用の見積を提示。</div>
+      </div>
+      <div class="step">
+        <div class="step-no">STEP 3</div>
+        <div class="step-title">製作・導入</div>
+        <div class="step-desc">リモートで開発・導入。動作確認まで並走します。</div>
+      </div>
+      <div class="step">
+        <div class="step-no">STEP 4</div>
+        <div class="step-title">保守(任意)</div>
+        <div class="step-desc">仕様変更・不具合対応を月額で。単発対応も可。</div>
+      </div>
+    </div>
+
+    <table>
+      <caption>費用の目安</caption>
+      <thead>
+        <tr><th>内容</th><th>目安</th><th style="width:38%">例</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Excelマクロ製作</td>
+          <td class="price">3万円〜</td>
+          <td>転記の自動化、集計表、帳票の自動生成</td>
+        </tr>
+        <tr>
+          <td>業務アプリ製作</td>
+          <td class="price">10万円〜</td>
+          <td>シフト管理、設備点検記録、在庫管理</td>
+        </tr>
+        <tr>
+          <td>多言語資料製作</td>
+          <td class="price">1万円〜/点</td>
+          <td>安全教育資料、作業手順書(ポルトガル語・ミャンマー語ほか)</td>
+        </tr>
+        <tr>
+          <td>月額保守</td>
+          <td class="price">5,000円〜/月</td>
+          <td>仕様変更、不具合対応、使い方サポート</td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="table-note">※ 正式な金額は無料診断後に確定します。診断後の追加請求はありません。ツールの著作権・改変権は納品後お客様に帰属する形も選べます。</p>
+  </div>
+</section>
+
+<!-- ===== 4. 連絡先 ===== -->
+<section id="contact" class="contact">
+  <div class="sheet">
+    <div class="sec-head"><span class="sec-no mono">4</span><h2>相談する</h2></div>
+    <hr class="rule">
+    <p class="sec-sub">メール1本で始まります。訪問対応の調整も可能です。</p>
+    <div class="contact-grid">
+      <div class="contact-copy">
+        <p>「この作業、何とかならないか」という一文だけでも構いません。対象のExcelファイルや作業の様子が分かる資料があれば、より具体的な回答ができます。</p>
+        <p>返信は<strong>原則24時間以内</strong>。しつこい営業の連絡は一切しません。診断の結果「自動化しても元が取れない」と判断した場合は、正直にそうお伝えします。</p>
+      </div>
+      <div class="contact-card">
+        <div class="contact-row">
+          <span class="contact-label">屋号</span>
+          <span class="contact-value">Jack.Central(ジャック・セントラル)</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">メール</span>
+          <span class="contact-value mono">info@jack-central.com</span>
+        </div>
+        <div class="contact-row">
+          <span class="contact-label">対応地域</span>
+          <span class="contact-value">全国(オンライン完結)/ 静岡県西部は訪問可</span>
+        </div>
+        <a class="btn" href="mailto:info@jack-central.com?subject=%E6%A5%AD%E5%8B%99%E6%94%B9%E5%96%84%E3%81%AE%E7%9B%B8%E8%AB%87">メールで相談する(無料)</a>
+        <p class="contact-fine">問い合わせフォーム設置後はボタンのリンク先を差し替えてください。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="foot">
+    <span>© Jack.Central</span>
+    <span>製造現場の業務改善・ツール開発</span>
+  </div>
+</footer>
+
+</body>
+</html>
